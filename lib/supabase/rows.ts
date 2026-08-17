@@ -1,5 +1,5 @@
-import type { Property, PropertyDraft } from '@/types/property';
-import type { PropertyRow } from './database.types';
+import type { Property, PropertyDraft, PropertyScenario } from '@/types/property';
+import type { PropertyRow, PropertyScenarioRow } from './database.types';
 
 /**
  * Mapping between snake_case database rows and camelCase domain objects.
@@ -113,5 +113,27 @@ export function propertyToRow(
     estimated_market_value: draft.estimatedMarketValue,
     appreciation_rate: draft.appreciationRate,
     rent_growth_rate: draft.rentGrowthRate,
+  };
+}
+
+/**
+ * Scenario rows.
+ *
+ * `assumptions` is JSONB and therefore `unknown` at this boundary. It is not
+ * validated here — the analysis screens parse it through the Zod schemas in
+ * `lib/validation/scenario.ts`, which fill in defaults for any field added
+ * since the scenario was saved.
+ */
+export function scenarioFromRow(row: PropertyScenarioRow): PropertyScenario {
+  return {
+    id: row.id,
+    propertyId: row.property_id,
+    userId: row.user_id,
+    name: row.name,
+    scenarioType: row.scenario_type,
+    assumptions:
+      row.assumptions && typeof row.assumptions === 'object' ? row.assumptions : {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }

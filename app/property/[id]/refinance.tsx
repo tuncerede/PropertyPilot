@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ScenarioBar } from '@/components/analysis/ScenarioBar';
 import { PropertyRouteState } from '@/components/property/PropertyRouteState';
 import { CurrencyField, IntegerField, PercentField, SwitchField } from '@/components/forms/Field';
 import { Card } from '@/components/ui/Card';
@@ -12,6 +13,8 @@ import { Text, toneForValue } from '@/components/ui/Text';
 import { SHORT_DISCLAIMER } from '@/constants/branding';
 import { spacing } from '@/constants/theme';
 import { analyzeRefinance } from '@/lib/calculations/refinance';
+import { SCENARIO_TYPE_FOR, parseRefinanceInputs } from '@/lib/validation/scenario';
+import { useScenarioEditor } from '@/hooks/useScenarioEditor';
 import {
   formatCurrency,
   formatCurrencyPerMonth,
@@ -21,6 +24,7 @@ import {
 import { analytics } from '@/services/analytics';
 import { useProperty } from '@/store/propertyStore';
 import type { RefinanceInputs } from '@/types/analysis';
+import type { PropertyScenario } from '@/types/property';
 
 export default function RefinanceScreen() {
   const router = useRouter();
@@ -48,6 +52,16 @@ export default function RefinanceScreen() {
     };
   }, [overrides, property]);
 
+  const applyScenario = useCallback((loaded: RefinanceInputs) => setOverrides(loaded), []);
+
+  const editor = useScenarioEditor<RefinanceInputs>({
+    propertyId: property?.id,
+    scenarioType: SCENARIO_TYPE_FOR.refinance,
+    current: inputs,
+    parse: parseRefinanceInputs,
+    onApply: applyScenario,
+  });
+
   useEffect(() => {
     if (property) analytics.track({ name: 'refinance_opened', propertyId: property.id });
   }, [property]);
@@ -56,6 +70,23 @@ export default function RefinanceScreen() {
     () => (property && inputs ? analyzeRefinance(property, inputs) : null),
     [inputs, property],
   );
+
+  /** One-line summary per saved scenario: the loan and what it frees up. */
+  const describeScenario = useMemo(() => {
+    if (!property) return undefined;
+
+    const summaries = new Map<string, string>();
+    for (const scenario of editor.scenarios) {
+      const savedInputs = parseRefinanceInputs(scenario.assumptions);
+      const saved = analyzeRefinance(property, savedInputs);
+      summaries.set(
+        scenario.id,
+        `${formatCurrency(saved.newLoanAmount)} at ${formatPercent(savedInputs.newInterestRate, { decimals: 2 })} · ${formatCurrency(saved.cashReleased)} released`,
+      );
+    }
+
+    return (scenario: PropertyScenario) => summaries.get(scenario.id) ?? null;
+  }, [editor.scenarios, property]);
 
   if (!property) return <PropertyRouteState title="Refinance" />;
 
@@ -91,6 +122,20 @@ export default function RefinanceScreen() {
           }
         />
       </Card>
+
+      <ScenarioBar
+        scenarios={editor.scenarios}
+        activeId={editor.activeId}
+        isDirty={editor.isDirty}
+        isSaving={editor.isSaving}
+        error={editor.error}
+        describe={describeScenario}
+        onLoad={editor.load}
+        onSaveNew={(name) => editor.saveNew(name, inputs)}
+        onUpdateActive={() => editor.updateActive(inputs)}
+        onRename={editor.rename}
+        onDelete={editor.remove}
+      />
 
       <Section title="What changes">
         <Card>

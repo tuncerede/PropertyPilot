@@ -23,6 +23,9 @@ export type AnalyticsEvent =
   | { name: 'sell_hold_opened'; propertyId: string }
   | { name: 'sell_hold_completed'; propertyId: string; horizonYears: number; outcome: string }
   | { name: 'refinance_opened'; propertyId: string }
+  | { name: 'scenario_saved'; propertyId: string; scenarioType: string }
+  | { name: 'scenario_loaded'; propertyId: string; scenarioType: string }
+  | { name: 'scenario_deleted'; scenarioId: string }
   | { name: 'paywall_viewed'; source: string }
   | { name: 'subscription_started'; tier: string; period: string }
   | { name: 'subscription_restored'; tier: string }

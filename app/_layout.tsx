@@ -10,6 +10,7 @@ import { lightPalette } from '@/constants/theme';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { useAuthStore } from '@/store/authStore';
 import { usePropertyStore } from '@/store/propertyStore';
+import { useScenarioStore } from '@/store/scenarioStore';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -33,6 +34,7 @@ export default function RootLayout() {
   const user = useAuthStore((state) => state.user);
   const configureSubscription = useSubscriptionStore((state) => state.configure);
   const loadProperties = usePropertyStore((state) => state.load);
+  const loadScenarios = useScenarioStore((state) => state.load);
 
   useEffect(() => {
     void initialize();
@@ -48,8 +50,10 @@ export default function RootLayout() {
    * of rendering "property not found" against an empty store.
    */
   useEffect(() => {
-    if (user) void loadProperties(user.id);
-  }, [loadProperties, user]);
+    if (!user) return;
+    void loadProperties(user.id);
+    void loadScenarios(user.id);
+  }, [loadProperties, loadScenarios, user]);
 
   useEffect(() => {
     if (!isInitializing) {

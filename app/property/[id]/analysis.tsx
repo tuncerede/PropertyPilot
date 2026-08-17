@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ComparisonResult } from '@/components/analysis/ComparisonResult';
+import { ScenarioBar } from '@/components/analysis/ScenarioBar';
 import { PropertyRouteState } from '@/components/property/PropertyRouteState';
 import { ProjectionTable } from '@/components/analysis/ProjectionTable';
 import { CurrencyField, PercentField, SwitchField } from '@/components/forms/Field';
@@ -20,11 +21,14 @@ import {
 } from '@/constants/analysis';
 import { spacing } from '@/constants/theme';
 import { compareSellVsHold } from '@/lib/calculations/sellVsHold';
+import { SCENARIO_TYPE_FOR, parseSellVsHoldAssumptions } from '@/lib/validation/scenario';
+import { useScenarioEditor } from '@/hooks/useScenarioEditor';
 import { formatCurrency, formatPercent } from '@/lib/formatting/number';
 import { analytics } from '@/services/analytics';
 import { useProperty } from '@/store/propertyStore';
 import { useEntitlements } from '@/store/subscriptionStore';
 import type { SellVsHoldAssumptions } from '@/types/analysis';
+import type { PropertyScenario } from '@/types/property';
 
 /**
  * Sell vs. Hold.
@@ -69,6 +73,19 @@ export default function SellVsHoldScreen() {
     };
   }, [canUseLongHorizons, overrides, property]);
 
+  const applyScenario = useCallback(
+    (loaded: SellVsHoldAssumptions) => setOverrides(loaded),
+    [],
+  );
+
+  const editor = useScenarioEditor<SellVsHoldAssumptions>({
+    propertyId: property?.id,
+    scenarioType: SCENARIO_TYPE_FOR.sellVsHold,
+    current: assumptions,
+    parse: parseSellVsHoldAssumptions,
+    onApply: applyScenario,
+  });
+
   useEffect(() => {
     if (property) analytics.track({ name: 'sell_hold_opened', propertyId: property.id });
   }, [property]);
@@ -77,6 +94,29 @@ export default function SellVsHoldScreen() {
     () => (property && assumptions ? compareSellVsHold(property, assumptions) : null),
     [assumptions, property],
   );
+
+  /**
+   * One-line outcome for each saved scenario, so the list is a comparison
+   * rather than a set of opaque names. Recomputed only when the saved set or
+   * the property changes — not while the user is typing.
+   */
+  const describeScenario = useMemo(() => {
+    if (!property) return undefined;
+
+    const summaries = new Map<string, string>();
+    for (const scenario of editor.scenarios) {
+      const saved = compareSellVsHold(property, parseSellVsHoldAssumptions(scenario.assumptions));
+      const label =
+        saved.outcome === 'toss-up'
+          ? 'Too close to call'
+          : saved.outcome === 'sell'
+            ? `Sell + Invest ahead by ${formatCurrency(Math.abs(saved.difference))}`
+            : `Keeping ahead by ${formatCurrency(Math.abs(saved.difference))}`;
+      summaries.set(scenario.id, `${saved.assumptions.projectionYears} yr · ${label}`);
+    }
+
+    return (scenario: PropertyScenario) => summaries.get(scenario.id) ?? null;
+  }, [editor.scenarios, property]);
 
   useEffect(() => {
     if (property && result) {
@@ -124,6 +164,20 @@ export default function SellVsHoldScreen() {
       />
 
       <ComparisonResult result={result} />
+
+      <ScenarioBar
+        scenarios={editor.scenarios}
+        activeId={editor.activeId}
+        isDirty={editor.isDirty}
+        isSaving={editor.isSaving}
+        error={editor.error}
+        describe={describeScenario}
+        onLoad={editor.load}
+        onSaveNew={(name) => editor.saveNew(name, assumptions)}
+        onUpdateActive={() => editor.updateActive(assumptions)}
+        onRename={editor.rename}
+        onDelete={editor.remove}
+      />
 
       {result.factors.length > 0 ? (
         <Section title="Why?">

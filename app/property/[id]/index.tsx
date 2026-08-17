@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { PropertyRouteState } from '@/components/property/PropertyRouteState';
@@ -15,6 +15,7 @@ import { SHORT_DISCLAIMER } from '@/constants/branding';
 import { spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/useTheme';
 import { assessPerformance } from '@/lib/calculations/performance';
+import { confirmDestructive } from '@/lib/confirm';
 import {
   explainCapRate,
   explainCashFlow,
@@ -74,24 +75,17 @@ export default function PropertyDashboardScreen() {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert(
-      'Delete this property?',
-      'Its figures and analysis will be removed. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!user) return;
-            const ok = await remove(user.id, property.id);
-            if (ok) router.replace('/(tabs)/properties');
-          },
-        },
-      ],
-    );
-  };
+  const confirmDelete = () =>
+    confirmDestructive({
+      title: 'Delete this property?',
+      message: 'Its figures and saved scenarios will be removed. This cannot be undone.',
+      confirmLabel: 'Delete',
+      onConfirm: async () => {
+        if (!user) return;
+        const ok = await remove(user.id, property.id);
+        if (ok) router.replace('/(tabs)/properties');
+      },
+    });
 
   return (
     <Screen>

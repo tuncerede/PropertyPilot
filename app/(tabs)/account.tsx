@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Badge } from '@/components/ui/Badge';
@@ -15,10 +15,12 @@ import { TIERS } from '@/constants/subscription';
 import { spacing } from '@/constants/theme';
 import { env } from '@/lib/config/env';
 import { useColors } from '@/hooks/useTheme';
+import { confirmDestructive, notify } from '@/lib/confirm';
 import { formatPercent } from '@/lib/formatting/number';
 import { getSubscriptionService } from '@/services/subscription';
 import { useAuthStore } from '@/store/authStore';
 import { usePropertyStore } from '@/store/propertyStore';
+import { useScenarioStore } from '@/store/scenarioStore';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
 
 export default function AccountScreen() {
@@ -37,6 +39,7 @@ export default function AccountScreen() {
 
   const propertyCount = usePropertyStore((state) => state.properties.length);
   const clearProperties = usePropertyStore((state) => state.clear);
+  const clearScenarios = useScenarioStore((state) => state.clear);
 
   const [restored, setRestored] = useState(false);
 
@@ -45,6 +48,7 @@ export default function AccountScreen() {
   const handleSignOut = async () => {
     await signOut();
     clearProperties();
+    clearScenarios();
     await resetSubscription();
     router.replace('/(auth)/welcome');
   };
@@ -57,7 +61,7 @@ export default function AccountScreen() {
       return;
     }
 
-    Alert.alert(
+    notify(
       'Manage subscription',
       isMock
         ? 'Subscriptions are simulated in demo mode. Connect RevenueCat to manage a real subscription here.'
@@ -65,27 +69,22 @@ export default function AccountScreen() {
     );
   };
 
-  const confirmDelete = () => {
-    Alert.alert(
-      'Delete your account?',
-      'Your properties and analysis will be permanently removed. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete account',
-          style: 'destructive',
-          onPress: async () => {
-            const ok = await deleteAccount();
-            if (ok) {
-              clearProperties();
-              await resetSubscription();
-              router.replace('/(auth)/welcome');
-            }
-          },
-        },
-      ],
-    );
-  };
+  const confirmDelete = () =>
+    confirmDestructive({
+      title: 'Delete your account?',
+      message:
+        'Your properties, scenarios and analysis will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete account',
+      onConfirm: async () => {
+        const ok = await deleteAccount();
+        if (ok) {
+          clearProperties();
+          clearScenarios();
+          await resetSubscription();
+          router.replace('/(auth)/welcome');
+        }
+      },
+    });
 
   return (
     <Screen>

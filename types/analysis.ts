@@ -170,7 +170,7 @@ export interface SellAndInvestProjection {
   saleProceeds: SaleProceeds;
 }
 
-export interface SellVsHoldAssumptions {
+export type SellVsHoldAssumptions = {
   expectedSalePrice: number;
   sellingCostPercentage: number;
   appreciationRate: number;
@@ -184,7 +184,7 @@ export interface SellVsHoldAssumptions {
   compareOnAfterSaleBasis: boolean;
   includeEstimatedTaxes: boolean;
   estimatedTaxRate: number;
-}
+};
 
 export type SellVsHoldOutcome = 'hold' | 'sell' | 'toss-up';
 
@@ -204,7 +204,7 @@ export interface SellVsHoldResult {
   breakEvenAppreciationRate: number | null;
 }
 
-export interface RefinanceInputs {
+export type RefinanceInputs = {
   newLoanAmount: number;
   /** Decimal fraction APR. */
   newInterestRate: number;
@@ -212,7 +212,7 @@ export interface RefinanceInputs {
   closingCosts: number;
   /** Add closing costs to the new loan instead of paying them in cash. */
   rollClosingCostsIntoLoan: boolean;
-}
+};
 
 export interface RefinanceResult {
   newLoanAmount: number;

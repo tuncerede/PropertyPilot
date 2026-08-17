@@ -10,8 +10,10 @@ import { toAppError } from '@/lib/errors';
 import { analytics } from '@/services/analytics';
 import { logger } from '@/services/logger';
 import { getPropertyRepository } from '@/services/properties';
+import { getScenarioRepository } from '@/services/scenarios';
 import type { PortfolioMetrics, PropertyMetrics, RankedProperty } from '@/types/analysis';
 import type { Property, PropertyDraft } from '@/types/property';
+import { useScenarioStore } from './scenarioStore';
 
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -104,6 +106,17 @@ export const usePropertyStore = create<PropertyState>((set, get) => ({
 
     try {
       await getPropertyRepository().remove(userId, propertyId);
+
+      // Scenarios belong to the property; leaving them behind would strand
+      // rows the user can no longer reach. A failure here must not surface as
+      // "delete failed" — the property is already gone.
+      try {
+        await getScenarioRepository().removeForProperty(userId, propertyId);
+      } catch (cleanupError) {
+        logger.error('Failed to clean up scenarios for a deleted property', cleanupError);
+      }
+      useScenarioStore.getState().forgetProperty(propertyId);
+
       set({
         properties: get().properties.filter((item) => item.id !== propertyId),
         isSaving: false,

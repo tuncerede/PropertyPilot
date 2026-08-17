@@ -110,6 +110,7 @@ production services satisfy:
 | --- | --- | --- |
 | `AuthService` | Supabase Auth | `DemoAuthService` — any email, 6+ char password, session persisted on-device |
 | `PropertyRepository` | Supabase + RLS | `LocalPropertyRepository` — AsyncStorage, seeded once with sample properties |
+| `ScenarioRepository` | Supabase + RLS | `LocalScenarioRepository` — AsyncStorage, never seeded |
 | `SubscriptionService` | RevenueCat | `MockSubscriptionService` — purchases and restores succeed, no money moves |
 
 Everything else — every screen, every calculation, the paywall, the property
@@ -268,8 +269,8 @@ lib/
   validation/         Zod schemas
   supabase/           client, row types, row ↔ domain mappers
   config/             environment
-services/             ports + adapters: auth, properties, subscription, analytics
-store/                Zustand stores (auth, properties, subscription)
+services/             ports + adapters: auth, properties, scenarios, subscription, analytics
+store/                Zustand stores (auth, properties, scenarios, subscription)
 constants/            theme, branding, subscription tiers, analysis thresholds
 types/                domain and result types
 supabase/             SQL migrations and seed data
@@ -329,6 +330,24 @@ The result never says "you should sell". It says which path produces the
 higher projected value *under these assumptions*, shows the gap, and lists the
 factors driving it.
 
+### Saved scenarios
+
+Any assumption set — Sell vs. Hold or Refinance — can be saved under a name
+and reloaded later. Each saved scenario lists its own outcome ("20 yr ·
+Keeping ahead by $235,326"), so the list reads as a comparison rather than a
+set of opaque names. Editing a loaded scenario marks it dirty and offers
+"Update" alongside "Save as new", so refining assumptions never silently
+creates duplicates.
+
+Assumptions are stored as JSONB and read back through Zod schemas where every
+field has a default. A scenario saved by an older build still opens in a newer
+one, picking up sensible defaults for fields that did not exist when it was
+saved — losing a user's saved analysis to a schema change is not an acceptable
+failure mode.
+
+Scenarios are capped at 10 per property (`MAX_SCENARIOS_PER_PROPERTY`) as a
+storage guard, and are deleted along with their property.
+
 ---
 
 ## Testing
@@ -338,7 +357,8 @@ npm test
 npm test -- --coverage
 ```
 
-199 unit tests cover the calculation engine and the formatters: effective
+256 unit tests cover the calculation engine, the formatters, scenario
+persistence and the subscription gates: effective
 income, vacancy, operating expenses, NOI, cash flow, equity, cap rate,
 cash-on-cash, return on equity, sale proceeds, loan payments, amortization,
 appreciation, rent growth, hold and sell projections, the Sell vs. Hold
@@ -361,9 +381,9 @@ Expected results are deterministic and hand-checkable.
   one, and the UI says so.
 - **Estimated market value is user-supplied.** No valuation API is connected.
   It is not an appraisal, and the app never implies otherwise.
-- **Scenarios are not persisted yet.** The `property_scenarios` table and its
-  policies exist; the UI recomputes assumptions live rather than saving named
-  scenarios.
+- **No dedicated side-by-side scenario comparison.** Saved scenarios each show
+  their own outcome in the list, which covers the common case, but there is no
+  full comparison view yet.
 - **Account deletion is partial without a server.** Deleting an auth user
   requires the service role, which cannot live in the app. The client removes
   all of the user's own rows and signs out; a Supabase Edge Function should

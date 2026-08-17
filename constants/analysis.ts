@@ -63,6 +63,14 @@ export const BREAK_EVEN_SEARCH = {
   toleranceDollars: 1,
 } as const;
 
+/**
+ * Cap on saved scenarios per property.
+ *
+ * A guard against unbounded growth in on-device storage, not a paywall — the
+ * analyses that create scenarios are already entitlement-gated.
+ */
+export const MAX_SCENARIOS_PER_PROPERTY = 10;
+
 /** Thresholds used to explain *why* a Sell vs. Hold result came out as it did. */
 export const EXPLANATION_THRESHOLDS = {
   lowReturnOnEquity: 0.04,
