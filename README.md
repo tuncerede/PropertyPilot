@@ -348,6 +348,25 @@ failure mode.
 Scenarios are capped at 10 per property (`MAX_SCENARIOS_PER_PROPERTY`) as a
 storage guard, and are deleted along with their property.
 
+### Side-by-side comparison
+
+Two or more saved scenarios unlock a comparison view: row labels pinned on the
+left, one column per scenario scrolling horizontally, and a marker on the
+stronger figure in each row.
+
+Two rules keep that marker honest:
+
+- **Ties are not winners.** Two identical figures both go unmarked; picking
+  one would be simply wrong, and it is the kind of wrong a landlord would act
+  on.
+- **Wealth is only ranked within a shared horizon.** A 20-year projection
+  beats a 5-year one for no reason other than being longer, so when saved
+  scenarios use different horizons those rows are left unmarked and the screen
+  says why.
+
+Assumption rows — appreciation, rent growth, the alternative return — carry no
+marker at all. They are inputs the user chose, not outcomes to win at.
+
 ---
 
 ## Testing
@@ -357,8 +376,8 @@ npm test
 npm test -- --coverage
 ```
 
-256 unit tests cover the calculation engine, the formatters, scenario
-persistence and the subscription gates: effective
+280 unit tests cover the calculation engine, the formatters, scenario
+persistence and comparison, and the subscription gates: effective
 income, vacancy, operating expenses, NOI, cash flow, equity, cap rate,
 cash-on-cash, return on equity, sale proceeds, loan payments, amortization,
 appreciation, rent growth, hold and sell projections, the Sell vs. Hold
@@ -381,9 +400,6 @@ Expected results are deterministic and hand-checkable.
   one, and the UI says so.
 - **Estimated market value is user-supplied.** No valuation API is connected.
   It is not an appraisal, and the app never implies otherwise.
-- **No dedicated side-by-side scenario comparison.** Saved scenarios each show
-  their own outcome in the list, which covers the common case, but there is no
-  full comparison view yet.
 - **Account deletion is partial without a server.** Deleting an auth user
   requires the service role, which cannot live in the app. The client removes
   all of the user's own rows and signs out; a Supabase Edge Function should

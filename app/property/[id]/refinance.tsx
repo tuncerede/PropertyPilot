@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScenarioBar } from '@/components/analysis/ScenarioBar';
 import { PropertyRouteState } from '@/components/property/PropertyRouteState';
 import { CurrencyField, IntegerField, PercentField, SwitchField } from '@/components/forms/Field';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Metric, MetricRow } from '@/components/ui/Metric';
 import { Screen } from '@/components/ui/Screen';
@@ -23,6 +24,7 @@ import {
 } from '@/lib/formatting/number';
 import { analytics } from '@/services/analytics';
 import { useProperty } from '@/store/propertyStore';
+import { useEntitlements } from '@/store/subscriptionStore';
 import type { RefinanceInputs } from '@/types/analysis';
 import type { PropertyScenario } from '@/types/property';
 
@@ -30,6 +32,7 @@ export default function RefinanceScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const property = useProperty(id);
+  const { can } = useEntitlements();
 
   /**
    * Held as overrides on top of defaults derived from the property, so the
@@ -136,6 +139,19 @@ export default function RefinanceScreen() {
         onRename={editor.rename}
         onDelete={editor.remove}
       />
+
+      {editor.scenarios.length >= 2 ? (
+        <Button
+          label={`Compare ${editor.scenarios.length} scenarios`}
+          variant="secondary"
+          icon="albums-outline"
+          onPress={() =>
+            can('scenarioComparison')
+              ? router.push(`/property/${property.id}/compare?type=refinance`)
+              : router.push('/paywall?reason=scenarioComparison')
+          }
+        />
+      ) : null}
 
       <Section title="What changes">
         <Card>

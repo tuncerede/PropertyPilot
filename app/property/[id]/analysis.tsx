@@ -6,6 +6,7 @@ import { ScenarioBar } from '@/components/analysis/ScenarioBar';
 import { PropertyRouteState } from '@/components/property/PropertyRouteState';
 import { ProjectionTable } from '@/components/analysis/ProjectionTable';
 import { CurrencyField, PercentField, SwitchField } from '@/components/forms/Field';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { MetricRow } from '@/components/ui/Metric';
 import { Screen } from '@/components/ui/Screen';
@@ -178,6 +179,19 @@ export default function SellVsHoldScreen() {
         onRename={editor.rename}
         onDelete={editor.remove}
       />
+
+      {editor.scenarios.length >= 2 ? (
+        <Button
+          label={`Compare ${editor.scenarios.length} scenarios`}
+          variant="secondary"
+          icon="albums-outline"
+          onPress={() =>
+            can('scenarioComparison')
+              ? router.push(`/property/${property.id}/compare?type=sell`)
+              : router.push('/paywall?reason=scenarioComparison')
+          }
+        />
+      ) : null}
 
       {result.factors.length > 0 ? (
         <Section title="Why?">
