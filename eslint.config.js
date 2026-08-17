@@ -9,11 +9,9 @@ module.exports = defineConfig([
   },
   {
     rules: {
+      // Unused variables are already an error via TypeScript's
+      // noUnusedLocals / noUnusedParameters, so this config stays lean.
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
-      ],
     },
   },
 ]);

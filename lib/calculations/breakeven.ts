@@ -52,8 +52,8 @@ export function findBreakEvenAppreciationRate(
   const gapAt = (appreciationRate: number): number =>
     projectHold(property, { ...assumptions, appreciationRate }).projectedWealth - sellWealth;
 
-  let low = BREAK_EVEN_SEARCH.minRate;
-  let high = BREAK_EVEN_SEARCH.maxRate;
+  let low: number = BREAK_EVEN_SEARCH.minRate;
+  let high: number = BREAK_EVEN_SEARCH.maxRate;
 
   const gapLow = gapAt(low);
   const gapHigh = gapAt(high);

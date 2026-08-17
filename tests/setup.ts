@@ -6,6 +6,12 @@
  * exist under Node.
  */
 
+// Developer logging is verified by its own call sites, not by every suite —
+// silencing it keeps test output readable.
+jest.mock('@/services/logger', () => ({
+  logger: { debug: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => {
   const store = new Map<string, string>();
   return {
