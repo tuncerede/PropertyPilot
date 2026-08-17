@@ -13,7 +13,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
-    "check": "npm run typecheck && npm run lint && npm test -- --ci"
+    "check": "npm run typecheck && npm run lint && npm test -- --ci",
+    "verify:supabase": "node scripts/verify-supabase.mjs",
+    "verify:rls": "node scripts/verify-rls.mjs",
+    "test:rls:local": "./scripts/run-local-rls-tests.sh"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.10",

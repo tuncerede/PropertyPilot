@@ -14,4 +14,10 @@ module.exports = defineConfig([
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
+  {
+    // The verification scripts are command-line tools; their console output is
+    // the product, not a stray debug statement.
+    files: ['scripts/**/*.mjs', 'scripts/**/*.js'],
+    rules: { 'no-console': 'off' },
+  },
 ]);

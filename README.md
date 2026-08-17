@@ -188,6 +188,35 @@ Regenerate the TypeScript row types after a schema change:
 npx supabase gen types typescript --project-id <ref> > lib/supabase/database.types.ts
 ```
 
+### Verifying it works
+
+Two commands, in order:
+
+```bash
+npm run verify:supabase   # config, connectivity, schema, RLS smoke test
+npm run verify:rls        # hostile two-user RLS test against the live project
+```
+
+`verify:rls` signs up two real users, drives PostgREST with the anon key
+exactly as the app does, and has User A attempt to read, modify, and plant
+rows belonging to User B — including by substituting B's UUIDs directly. It
+exits non-zero on any hole.
+
+The same policies can be tested offline, with no project at all:
+
+```bash
+npm run test:rls:local
+```
+
+This applies the real migrations to a throwaway PostgreSQL database on top of a
+shim that recreates `auth.users`, `auth.uid()` and the `anon`/`authenticated`
+roles, then runs 26 hostile checks. Every check has been mutation-tested: the
+policies were deliberately loosened one at a time and the suite confirmed to
+fail on each.
+
+The full pre-launch sequence is in
+[docs/production-validation.md](docs/production-validation.md).
+
 ### Security model
 
 Row Level Security is enabled and **forced** on every table. A user can only
@@ -273,7 +302,8 @@ services/             ports + adapters: auth, properties, scenarios, subscriptio
 store/                Zustand stores (auth, properties, scenarios, subscription)
 constants/            theme, branding, subscription tiers, analysis thresholds
 types/                domain and result types
-supabase/             SQL migrations and seed data
+supabase/             SQL migrations, seed data, and RLS tests
+scripts/              preflight and hostile-RLS verification
 tests/                unit tests
 ```
 
