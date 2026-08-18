@@ -22,20 +22,28 @@ need a physical device and store accounts, so they are checklists.
 
 1. Create a project at [supabase.com](https://supabase.com). Keep the database
    password somewhere safe; you will need it for `supabase link`.
-2. **Project Settings → API**: copy the Project URL and the **anon / public**
-   key. Never copy the `service_role` key into this repo.
-3. Write `.env`:
-
-   ```bash
-   cp .env.example .env
-   ```
+2. **Project Settings → API**: copy the Project URL and the **publishable**
+   key — either the new-style `sb_publishable_…` key or the legacy `eyJ…`
+   anon JWT. Never copy a `sb_secret_…` or `service_role` key into this repo.
+3. Write `.env.local` (gitignored; Expo reads it ahead of `.env`):
 
    ```
    EXPO_PUBLIC_APP_ENV=development
    EXPO_PUBLIC_DEMO_MODE=false
    EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+   EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_...
    ```
+
+   > Supabase's connect dialog gives you the URL and key but **not**
+   > `EXPO_PUBLIC_DEMO_MODE=false`. Without it the app keeps using on-device
+   > storage and ignores Supabase entirely — the single most common reason a
+   > correctly-configured project appears to do nothing.
+   >
+   > That dialog also suggests creating `utils/supabase.ts` and replacing
+   > `App.tsx`. Do neither: this project already has a typed client at
+   > `lib/supabase/client.ts`, and a second client would mean two independent
+   > auth sessions in one app. There is no `App.tsx` — the entry point is
+   > `expo-router/entry`.
 
 4. Apply the migrations:
 

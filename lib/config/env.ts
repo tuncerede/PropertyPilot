@@ -18,7 +18,24 @@ function readBoolean(value: string | undefined, fallback: boolean): boolean {
 }
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+/**
+ * The client-side Supabase key.
+ *
+ * Supabase issues two generations of publishable key and its own quickstart
+ * uses a different variable name from ours, so both are accepted:
+ *
+ *   EXPO_PUBLIC_SUPABASE_ANON_KEY  — our name; legacy `eyJ…` anon JWT
+ *   EXPO_PUBLIC_SUPABASE_KEY       — the name Supabase's Expo quickstart emits;
+ *                                    new-style `sb_publishable_…` key
+ *
+ * Both are designed to be public and are safe in a client bundle *because*
+ * Row Level Security restricts every row to its owner. Each access below has
+ * to be written out in full: Expo substitutes `process.env.EXPO_PUBLIC_*`
+ * literally at build time, so a computed key name would never be replaced.
+ */
+const supabaseAnonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_KEY ?? '';
 
 const revenueCatIosKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? '';
 const revenueCatAndroidKey = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? '';

@@ -10,20 +10,42 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { isTransportFailure, looksLikeSupabase, looksSecret } from './lib/http-outcome.mjs';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-try {
-  for (const line of readFileSync(resolve(root, '.env'), 'utf8').split('\n')) {
-    const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
-    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+/**
+ * Loads .env.local then .env, matching Expo's precedence: a value already
+ * present (real environment, or an earlier file) always wins.
+ */
+function loadEnv() {
+  for (const file of ['.env.local', '.env']) {
+    try {
+      for (const line of readFileSync(resolve(root, file), 'utf8').split('\n')) {
+        const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
+        if (match && match[1] && !process.env[match[1]]) {
+          process.env[match[1]] = match[2].replace(/^["']|["']$/g, '');
+        }
+      }
+    } catch {
+      // File absent: fall through to the next one.
+    }
   }
-} catch {
-  /* no .env; use the environment */
 }
+
+/**
+ * Supabase's Expo quickstart emits EXPO_PUBLIC_SUPABASE_KEY; our own
+ * .env.example uses EXPO_PUBLIC_SUPABASE_ANON_KEY. Accept either.
+ */
+function readPublishableKey() {
+  return process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_KEY || '';
+}
+
+
+loadEnv();
 
 const checks = [];
 const record = (name, passed, detail = '') => {
@@ -32,22 +54,24 @@ const record = (name, passed, detail = '') => {
 };
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const anonKey = readPublishableKey();
 const demoMode = (process.env.EXPO_PUBLIC_DEMO_MODE ?? 'true').toLowerCase();
 
 console.log('\nPropertyPilot — Supabase preflight\n');
 console.log('Configuration\n');
 
 record('EXPO_PUBLIC_SUPABASE_URL is set', Boolean(url), url ?? 'missing');
-record('EXPO_PUBLIC_SUPABASE_ANON_KEY is set', Boolean(anonKey),
-  anonKey ? `${anonKey.slice(0, 12)}…` : 'missing');
+record('A publishable Supabase key is set', Boolean(anonKey) && !looksSecret(anonKey),
+  !anonKey ? 'missing (set EXPO_PUBLIC_SUPABASE_ANON_KEY or EXPO_PUBLIC_SUPABASE_KEY)'
+    : looksSecret(anonKey) ? 'SECRET KEY — this must never ship in a client bundle'
+    : `${anonKey.slice(0, 20)}…`);
 record('EXPO_PUBLIC_DEMO_MODE is false', demoMode === 'false',
   `currently "${demoMode}" — the app uses on-device storage until this is false`);
 
 // A service-role key in a client variable would ship to every user.
 const secretish = Object.entries(process.env).filter(
-  ([k, v]) => k.startsWith('EXPO_PUBLIC_') && typeof v === 'string' &&
-    (/service_role/.test(v) || /^sk_/.test(v)),
+  ([k, v]) => k.startsWith('EXPO_PUBLIC_') && typeof v === 'string' && v !== '' &&
+    (looksSecret(v) || /^sk_/.test(v)),
 );
 record('No server secret in an EXPO_PUBLIC_ variable', secretish.length === 0,
   secretish.length ? `LEAKED: ${secretish.map(([k]) => k).join(', ')}` : 'clean');
@@ -61,7 +85,47 @@ const client = createClient(url, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
 
-console.log('\nConnectivity and schema\n');
+console.log('\nConnectivity\n');
+
+{
+  // A direct request, so the result cannot be confused with a schema problem.
+  let reachable = false;
+  let detail = '';
+  try {
+    const response = await fetch(`${url}/rest/v1/`, {
+      headers: { apikey: anonKey },
+      signal: AbortSignal.timeout(20000),
+    });
+    const body = await response.text();
+
+    // A status code alone is not proof: a blocking proxy returns a perfectly
+    // well-formed 403 of its own. PostgREST always answers in JSON, so the
+    // body is what actually identifies the far end as Supabase.
+    const isJson = looksLikeSupabase(response.status, body);
+
+    reachable = isJson;
+    detail = isJson
+      ? `HTTP ${response.status}, JSON response`
+      : `HTTP ${response.status}, but the body is not JSON — something other ` +
+        `than Supabase answered: ${body.slice(0, 120).replace(/\s+/g, ' ')}`;
+  } catch (error) {
+    detail = error?.cause?.message ?? error?.message ?? String(error);
+  }
+
+  record('Supabase REST endpoint is reachable', reachable, detail);
+
+  if (!reachable) {
+    console.error('\nStopping: the project could not be reached, so nothing below');
+    console.error('could be verified. Every remaining check would be inconclusive,');
+    console.error('and reporting them as passes would be worse than useless.\n');
+    console.error('If you are running this inside a sandboxed agent environment,');
+    console.error('add the Supabase host to its network egress allowlist, or run');
+    console.error('this command from your own machine.\n');
+    process.exit(1);
+  }
+}
+
+console.log('\nSchema\n');
 
 const TABLES = ['profiles', 'properties', 'property_scenarios', 'subscription_state'];
 
@@ -69,22 +133,47 @@ for (const table of TABLES) {
   const { error } = await client.from(table).select('*', { head: true, count: 'exact' });
 
   // As an anonymous caller we expect either an empty result or a permission
-  // error — both prove the table exists. "relation does not exist" does not.
-  const missing = error && /does not exist|schema cache/i.test(error.message);
-  record(`Table public.${table} exists`, !missing, missing ? error.message : 'present');
+  // error — both prove the table exists. "relation does not exist" does not,
+  // and neither does a transport failure, which proves nothing at all.
+  const missing = Boolean(error) && /does not exist|schema cache/i.test(error.message);
+  const inconclusive = isTransportFailure(error) || (Boolean(error) && !missing &&
+    !/permission|denied|42501|JWT|not authorized/i.test(error.message));
+  record(`Table public.${table} exists`, !missing && !inconclusive,
+    inconclusive ? `could not tell — ${error.message}` : missing ? error.message : 'present');
 }
 
 {
-  // RLS smoke test: anonymous callers must not be able to read properties.
+  // RLS smoke test. A transport failure returns no rows too, so it must not
+  // be allowed to masquerade as "the policy blocked it".
   const { data, error } = await client.from('properties').select('id');
-  const blocked = (data?.length ?? 0) === 0 || Boolean(error);
-  record('Anonymous callers read no properties (RLS active)', blocked,
-    error ? error.message : `rows: ${data?.length ?? 0}`);
+  const permissionDenied =
+    Boolean(error) && /permission|denied|42501|JWT|not authorized/i.test(error.message);
+  const emptyResult = !error && (data?.length ?? 0) === 0;
+
+  record('Anonymous callers read no properties (RLS active)',
+    emptyResult || permissionDenied,
+    isTransportFailure(error) ? `could not tell — ${error.message}`
+      : error ? error.message
+      : `rows: ${data?.length ?? 0}`);
 }
 
 {
-  const { error } = await client.auth.getSession();
-  record('Auth endpoint reachable', !error, error?.message ?? 'ok');
+  // getSession() reads local storage and never touches the network, so it
+  // would pass while completely offline. Sign in with a deliberately bogus
+  // credential instead: a 400 back from GoTrue proves the endpoint answered.
+  let answered = false;
+  let detail = '';
+  try {
+    const { error } = await client.auth.signInWithPassword({
+      email: `preflight-${Date.now()}@example.invalid`,
+      password: 'not-a-real-password',
+    });
+    answered = Boolean(error) && !isTransportFailure(error);
+    detail = error ? `rejected bad credentials (${error.message})` : 'unexpectedly signed in';
+  } catch (error) {
+    detail = error?.message ?? String(error);
+  }
+  record('Auth endpoint answers', answered, detail);
 }
 
 const failed = checks.filter((c) => !c.passed);

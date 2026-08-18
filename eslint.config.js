@@ -20,4 +20,22 @@ module.exports = defineConfig([
     files: ['scripts/**/*.mjs', 'scripts/**/*.js'],
     rules: { 'no-console': 'off' },
   },
+  {
+    // Jest injects its globals; the .ts suites get them from @types/jest,
+    // which does not cover the ESM test files.
+    files: ['tests/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        jest: 'readonly',
+      },
+    },
+  },
 ]);
