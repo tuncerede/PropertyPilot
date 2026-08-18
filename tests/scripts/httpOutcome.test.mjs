@@ -120,6 +120,8 @@ describe('looksLikeSupabase', () => {
   });
 });
 
+// Fixtures below are fabricated. Never paste a real project key into a test:
+// it is committed, pushed, and outlives the file it was convenient in.
 describe('looksSecret', () => {
   it('flags both generations of secret key', () => {
     expect(looksSecret('sb_secret_abc123')).toBe(true);
@@ -127,7 +129,7 @@ describe('looksSecret', () => {
   });
 
   it('accepts publishable keys', () => {
-    expect(looksSecret('sb_publishable_aRu4DrxoA7iKOogvzZGv0g_1AFCRxyc')).toBe(false);
+    expect(looksSecret('sb_publishable_EXAMPLEONLY_not_a_real_key')).toBe(false);
     expect(looksSecret('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon')).toBe(false);
   });
 
