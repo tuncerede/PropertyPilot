@@ -1,0 +1,54 @@
+tier,row,video_id,title,upload_date,gap_codes,official_channel,notes
+1,1,g2lp_LiHcJ8,The Key to Hot vs Cold Market Trading,2024-10-23,REGIME,yes,hot/cold spectrum; own P&L as regime clue
+1,2,qButx3c0Bk0,Testing a New Strategy for this cold market | March 30 2026,2026-03-30,REGIME,yes,strategy swap in cold market
+1,3,Lin4WAwzPNY,Stop Overtrading: How Doing Less Made Me 3x,2026-01-01,RISK;SELECT,yes,trade-count reduction
+1,4,qfReXP_lpQE,The Discipline NOT to Trade Low Quality Setups,,SELECT,yes,setup grading
+1,5,KzVbXzkoZkA,Ultimate Guide on ADDING to Winners with Scaling (LIVE STREAM),2023-04-04,EXIT;RISK,yes,scale in/out; runner core
+1,6,f7Wi_8VGtPs,This is Why Profit Cushion is So Important...,2025-08,RISK,yes,cushion-based sizing; give back half
+1,7,5KpKVP6oi0A,Reducing Max Share Size,2024-04-12,RISK;REGIME,yes,size tied to conditions
+1,8,-GQjrv7RjGQ,MAX LOSS,2024-11,RISK,yes,daily max loss rules
+1,8,8KQmIREGX6E,MAX LOSS RED DAY,,RISK,yes,rule-break post-mortem
+1,8,kIZS4bU2Jpo,MAX LOSS RED DAY (mistakes were made),,RISK,yes,rule-break post-mortem
+1,9,yDL2mY9C1h8,Reading Level 2 Was HARD Until I Learned This Easy 3-Step Trick,2024-05-04,L2,yes,L2 3-step
+1,9,QGoLN96KIDI,3 Secrets for using Level 2 to Predict Breakouts,2020-01-14,L2,yes,big buyers/sellers
+1,9,q5DRctM5C-Q,How to use Level 2 (with ZERO experience),2024-03-14,L2,yes,L2 basics
+1,10,ZqNYvNkg0_I,The Importance of The Daily Chart,,DAILY,yes,clean daily / resistance
+1,10,IqYXorgXN4o,WHAT?! Over 300% in 1 day with a Gap on the Daily Chart from $27.50 to $156,2024-06-24,DAILY,yes,daily gap through resistance
+1,10,nhAZOMZCY34,Momentum Day Trading Strategies | Ross Cameron,2016-08-08,DAILY;SELECT,yes,daily levels on momentum stocks
+1,11,nM2MxYk6Eo0,Day Trading a "Continuation" Setup,2026-03,CONT,yes,day-2 continuation
+1,12,H34--Upw0Do,I'm Looking For The NEXT 1000% Short Squeeze,2025-11-30,FLOAT,yes,short interest / squeeze selection
+1,12,2RA9A-IOlvo,a 780% Short Squeeze at 8am!,2026-05,FLOAT,yes,pre-market squeeze
+1,12,kew1-rBx4kk,Shorts Got Squeezed AGAIN! This Time It Was Another +500%,2026-08,FLOAT,yes,squeeze example
+1,12,hRfgCev2TU4,How to Trade Low Float Stock Runners- WWR PECK PSSI VVPR,2020-10,FLOAT,yes,float rotation
+1,13,CZLpO0ERlnA,Trading the #1 Leading Gainer & MOST OBVIOUS Stock Today,2024-07-18,SELECT;THEME,yes,leader vs sympathy
+1,13,cipbQ5yQKH0,The Leading Gainer Gives The Biggest Profits Today,2025-07-14,SELECT;THEME,yes,leader focus
+1,13,vnmiTC4PotU,Did You Find The Obvious Stock?,2025-05-22,SELECT,yes,obvious stock
+1,13,l7Z5aqS4zpk,There's ONE Stock On Watch for Monday,2026-08-09,SELECT,yes,single-stock focus
+1,14,ocDxrUSE9nA,Trading Breaking News Was HARD Until I Learned This...,,CATALYST,yes,catalyst quality
+1,15,FN-uqfbEVKw,Trading Halts Explained (Common Halt Reasons & Resumption Times),2025-02-16,STRUCT,yes,halt mechanics
+1,15,ZAwjAWD45Uw,Dip & Rip on HALT Resumption!,2024-07-02,STRUCT;ENTRY,yes,post-halt entry
+1,15,7I-_sXZ5TV8,41 Circuit Breaker Halts?!,2024-06-05,STRUCT,yes,halt count as momentum
+1,16,uJy9XIJq1cQ,Avoiding the False Breakout & Algo Flush,2022-06-23,ENTRY;STRUCT,yes,pre-entry disqualifiers
+1,16,nH-z-089CgM,Indicators for Avoiding False Breakouts,2022-08-09,ENTRY;STRUCT,yes,indicators
+1,16,W3jXQlgGbBc,The "Sub VWAP Trap" Trading Strategy,2024-07-15,ENTRY;STRUCT,yes,sub-VWAP trap
+1,16,xEc0cKy_4MI,Too Many False Breakouts -$2500 | Ross' Trade Recap,2019-04-16,ENTRY,yes,recap
+2,17,BZwJFPk3cBM,The REAL Reason Pre-Market Trading Is Better...,2026-07-03,ENTRY;STRUCT,yes,pre-market
+2,17,zTMeTAbbtsM,Day Trading the Leading Pre-Market Gainers,2025-02-28,ENTRY;SELECT,yes,pre-market
+2,17,UwjyQpl9hQU,When do I trade Pre-Market?,,ENTRY,yes,pre-market timing
+2,17,AuSHflRILjU,A 1000% Pre-Market Squeeze then a 100% Biotech Gain!,2025-10-24,FLOAT;ENTRY,yes,pre-market squeeze
+2,18,P5Sn_mWJdy0,Day Trading the Break of VWAP Setup,2026-06-25,ENTRY;STRUCT,yes,VWAP reclaim
+2,18,aIqF9OvWYZ4,Trading the Break of VWAP Setup,2024-03-07,ENTRY;STRUCT,yes,VWAP reclaim
+2,18,WLR6M9dqbmQ,Ross Avoids Trading Stocks Below VWAP (Short),2024-10-04,STRUCT,yes,VWAP side filter
+2,19,6w-7geIsq1A,Day Trading the 1-Minute Dip & Rip Strategy,2024-08-21,ENTRY,yes,dip and rip
+2,20,WCX3lR9-lOw,Increased Volume During the Opening Bell,2024-11-09,SELECT,yes,opening volume
+2,20,AQ-2_TWZweY,Why Relative Volume Matters In Day Trading,,SELECT,yes,RVOL
+2,21,zah2D5eLPLI,Reverse Splits & Secondary Offerings,2022-12-19,SELECT;RISK,yes,dilution risk
+2,21,jpPgEAAVMxY,+$15113.96 Day Trading a SPAC and a Recent Reverse Split Setup,2025-12-31,SELECT,yes,post-split setup
+2,22,v21qoYNw4Cw,THIS is the best time of day to Day Trade (Short),2023-10-30,REGIME;STRUCT,yes,time of day
+2,22,lgpcgyVPQ-g,My Afternoon Trades & Why The S&P 500 Bounced Off The Lows,2025-04-07,REGIME;STRUCT,yes,index context
+2,23,4WXrIW5k-hc,My Proven 3 Step System for Recovering Losses,,RISK,yes,drawdown protocol
+2,23,q2bFqtniOJw,5 MUST HAVE Skills for Day Trading Success,,RISK,yes,skills
+2,24,HTgPBJIKoHg,Watch List for FRIDAY & The Most Important Setup I'll be Watching!,,SELECT;DAILY,yes,5 pillars applied
+2,24,Voixr-cPSIM,Watch List for MONDAY!,,SELECT;DAILY,yes,5 pillars applied
+2,24,SYiYw1Aixyk,Day Trading Watch List and Game Plan for Monday!,,SELECT;DAILY,yes,5 pillars applied
+2,25,ZS8x6xK8-Vk,Ultimate Beginners Guide to Timing Entries & Exits for Momentum/Trend Trading,,ENTRY;EXIT,unverified,verify channel
