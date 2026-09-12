@@ -1,0 +1,3 @@
+# The 68-video small-account corpus, ONE YouTube video id per line (optional title after a space).
+# This file is intentionally empty in the repo: the corpus list lives with Falcon, not here.
+# Fill it before running fetch_transcripts.py so exclusion is by exact id, as required.
